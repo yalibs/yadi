@@ -1,5 +1,13 @@
-plugins {
-    id 'java';
+apply plugin: 'java'
+
+repositories {
+    mavenCentral();
+}
+
+apply plugin: 'signing'
+
+signing {
+    sign configurations.archives
 }
 
 def gitCommitSha = { ->
@@ -20,39 +28,60 @@ def gitCommitShaLong = { ->
     return stdout.toString().trim();
 }
 
-allprojects {
-    group = 'dk.yalibs';
-    version = 'v1.0.0+' + gitCommitSha();
-}
-
 java {
     sourceCompatibility = gradle.ext.javaVersion;
     targetCompatibility = gradle.ext.javaVersion;
 }
 
-configurations {
-    create("compile")
+apply plugin: 'maven-publish'
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc
 }
 
-repositories {
-    mavenCentral();
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
 }
 
-test {
-    useJUnitPlatform();
+artifacts {
+    archives javadocJar, sourcesJar
 }
 
-dependencies {
-}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'dk.yalibs'
+            artifactId = 'yadi'
+            // TODO: gitCommitSha postfix depends on build-type!
+            version = '1.0.0+' + gitCommitSha();
+            from components.java
 
-jar {
-    manifest {
-        attributes(
-                "Implementation-Title": "yadi",
-                "Implementation-Version": archiveVersion,
-                "Implementation-Vendor": "yalibs.dk",
-                "Implementation-URL": "https://github.com/yalibs/yadi"
-                );
-    };
+            pom {
+                name = 'yadi'
+                description = 'Yet another framework-agnostic skyhook dependency injection implementation'
+                url = 'https://www.yalibs.dk'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'yalibs'
+                        name = 'Asger Gitz-Johansen'
+                        email = 'yalibs@protonmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/yalibs/yadi.git'
+                    developerConnection = 'scm:git:ssh://github.com/yalibs/yadi.git'
+                    url = 'https://github.com/yalibs/yadi/'
+                }
+            }
+        }
+    }
 }
 
