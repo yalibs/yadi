@@ -23,9 +23,9 @@ public class DI {
      * @param key class key, used for lookup later
      * @param obj the object instance to store
      */
-    public static <T> void add(Class<? extends T> key, T obj) {
+    public static <T> void add(Class<? extends T> key, T obj) throws DIAddException {
         if(isLocked)
-            throw new DIAddException("Cannot add supplier with key '%s' because DI store has been locked".formatted(key.toString()));
+            throw new DIAddException("Cannot add with key '%s' because DI store has been locked".formatted(key.toString()));
         dependencies.put(key, obj);
     }
 
