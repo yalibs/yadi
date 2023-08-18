@@ -1,13 +1,7 @@
-apply plugin: 'java'
-
-repositories {
-    mavenCentral();
-}
-
-apply plugin: 'signing'
-
-signing {
-    sign configurations.archives
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'signing'
 }
 
 def gitCommitSha = { ->
@@ -28,38 +22,60 @@ def gitCommitShaLong = { ->
     return stdout.toString().trim();
 }
 
+def getVersion = { ->
+    // TODO: gitCommitSha postfix depends on build-type!
+    return '1.0.0+' + gitCommitSha();
+}
+
+group 'dk.yalibs'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    pomGroupId = group
+    pomVersion = version
+    pomArtifactId = "yadi"
+    pomArtifactName = "yadi"
+    jdkCompileVersion = 17
+}
+
+dependencies {
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+sourceCompatibility = "${jdkCompileVersion}"
+targetCompatibility = "${jdkCompileVersion}"
+
 java {
-    sourceCompatibility = gradle.ext.javaVersion;
-    targetCompatibility = gradle.ext.javaVersion;
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of("${jdkCompileVersion}"))
+    }
 }
 
-apply plugin: 'maven-publish'
-
-task javadocJar(type: Jar) {
-    archiveClassifier = 'javadoc'
-    from javadoc
-}
-
-task sourcesJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'dk.yalibs'
-            artifactId = 'yadi'
-            // TODO: gitCommitSha postfix depends on build-type!
-            version = '1.0.0+' + gitCommitSha();
+            groupId = "${pomGroupId}"
+            artifactId = "${pomArtifactId}"
+            version = "${pomVersion}"
             from components.java
-
             pom {
-                name = 'yadi'
+                name = "${pomArtifactId}"
                 description = 'Yet another framework-agnostic skyhook dependency injection implementation'
                 url = 'https://www.yalibs.dk'
                 licenses {
@@ -83,5 +99,25 @@ publishing {
             }
         }
     }
+    repositories {
+        maven {
+            name = "OSSRH"
+            def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = findProperty("ossrhUsername")
+                password = findProperty("ossrhPassword")
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty("signingKey") ?: System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = findProperty("signingPassword") ?: System.getenv("GPG_SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+    // sign configurations.archives
 }
 
