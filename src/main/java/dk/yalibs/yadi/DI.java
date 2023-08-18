@@ -17,7 +17,7 @@ public class DI {
     /**
      * Add an object to the store.
      * Note that if a key is added twice, it will simply overwrite the old store entry.
-     * @param <T>
+     * @param <T> some type
      * @param key class key, used for lookup later
      * @param obj the object instance to store
      * @throws DIAddException is thrown is the store is locked
@@ -32,7 +32,7 @@ public class DI {
      * Add a supplier function to the store.
      * The supplier function will be called every time a resource with the appropriate key is requested.
      * Note that if a key is added twice, it will simply overwrite the old store entry.
-     * @param <T>
+     * @param <T> some type
      * @param key class key used for lookup later
      * @param supplier function that can create objects
      * @throws DIAddException is thrown is the store is locked
@@ -47,7 +47,7 @@ public class DI {
      * Add a named object to the store.
      * It is recommended to use {@link #add(Class, Object) add} instead, since strings can be unreliable and difficult to keep track of
      * Note that if a key is added twice, it will simply overwrite the old store entry.
-     * @param <T>
+     * @param <T> some type
      * @param key string name of the object
      * @param obj the object instance to store
      * @throws DIAddException is thrown is the store is locked
@@ -83,7 +83,7 @@ public class DI {
     /**
      * Get an injected object based off of a class key.
      * The object will be freshly created if a supplier is associated with the key.
-     * @param <T>
+     * @param <T> some type
      * @param key the key to lookup in the store
      * @return the object from the store associated with the key
      * @throws NullPointerException is thrown if the key is not available in the store
@@ -99,7 +99,7 @@ public class DI {
     /**
      * Get an injected object based off a name key.
      * The object will be freshly created if a supplier is associated with the key.
-     * @param <T>
+     * @param <T> some type
      * @param key the key to lookup in the store
      * @return the object from the store associated with the key
      * @throws NullPointerException is thrown if the key is not available in the store
@@ -114,7 +114,7 @@ public class DI {
 
     /**
      * Checks if the store contains the provided class key
-     * @param <T>
+     * @param <T> some type
      * @param key class key of the object
      * @return true if either an appropriate object instance, or a supplier has been injected
      */
