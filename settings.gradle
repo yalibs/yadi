@@ -1,3 +1,0 @@
-gradle.ext.javaVersion = JavaVersion.VERSION_17
-rootProject.name = 'yadi'
-
