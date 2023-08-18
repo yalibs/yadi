@@ -1,8 +1,6 @@
 package dk.yalibs.yadi;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -22,6 +20,7 @@ public class DI {
      * @param <T>
      * @param key class key, used for lookup later
      * @param obj the object instance to store
+     * @throws DIAddException is thrown is the store is locked
      */
     public static <T> void add(Class<? extends T> key, T obj) throws DIAddException {
         if(isLocked)
@@ -36,11 +35,12 @@ public class DI {
      * @param <T>
      * @param key class key used for lookup later
      * @param supplier function that can create objects
+     * @throws DIAddException is thrown is the store is locked
      */
-    public static <T> void add(Class<? extends T> key, Supplier<? extends T> supplier) {
+    public static <T> void add(Class<? extends T> key, Supplier<? extends T> supplier) throws DIAddException {
         if(isLocked)
             throw new DIAddException("Cannot add supplier with key '%s' because DI store has been locked".formatted(key.toString()));
-        suppliers.put(key, supplier);
+        suppliers.put(key, (Supplier<Object>)supplier);
     }
 
     /**
@@ -50,8 +50,9 @@ public class DI {
      * @param <T>
      * @param key string name of the object
      * @param obj the object instance to store
+     * @throws DIAddException is thrown is the store is locked
      */
-    public static <T> void add(String key, T obj) {
+    public static <T> void add(String key, T obj) throws DIAddException {
         if(isLocked)
             throw new DIAddException("Cannot add object with key '%s' because DI store has been locked".formatted(key));
         namedDependencies.put(key, obj);
@@ -63,8 +64,9 @@ public class DI {
      * Note that if a key is added twice, it will simply overwrite the old store entry.
      * @param key string name of the object
      * @param supplier function that can create objects
+     * @throws DIAddException is thrown is the store is locked
      */
-    public static void add(String key, Supplier<Object> supplier) {
+    public static void add(String key, Supplier<Object> supplier) throws DIAddException  {
         if(isLocked)
             throw new DIAddException("Cannot add supplier with key '%s' because DI store has been locked".formatted(key));
         namedSuppliers.put(key, supplier);
@@ -98,9 +100,9 @@ public class DI {
      * Get an injected object based off a name key.
      * The object will be freshly created if a supplier is associated with the key.
      * @param <T>
-     * @param key
-     * @return
-     * @throws NullPointerException
+     * @param key the key to lookup in the store
+     * @return the object from the store associated with the key
+     * @throws NullPointerException is thrown if the key is not available in the store
      */
     public static <T> T get(String key) throws NullPointerException {
         if(namedDependencies.containsKey(key))
