@@ -1,6 +1,8 @@
 package dk.yalibs.yadi;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -137,6 +139,21 @@ public class DI {
         if(namedSuppliers.containsKey(key))
             return true;
         return false;
+    }
+
+    /**
+     * Get a list of all keys that have been registered so far.
+     * This includes named entries.
+     * Supplier entries will have the " (supplier)" suffix attached to them
+     * @return A sorted list of all keys available in the collection
+     */
+    public static List<String> getAllKeys() {
+        var keys = dependencies.keySet().stream().map(Class<?>::getName).toList();
+        keys.addAll(namedDependencies.keySet().stream().map(s -> "\"%s\"".formatted(s)).toList());
+        keys.addAll(suppliers.keySet().stream().map(c -> c.getName() + " (supplier)").toList());
+        keys.addAll(namedSuppliers.keySet().stream().map(s -> "\"%s\" (supplier)".formatted(s)).toList());
+        Collections.sort(keys);
+        return keys;
     }
 }
 
